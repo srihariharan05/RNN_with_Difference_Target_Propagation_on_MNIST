@@ -1,0 +1,89 @@
+import numpy as np
+import matplotlib.pyplot as plt 
+from datetime import datetime
+import sys
+import scipy.io
+import random
+
+
+def relu(f):
+    """ row=0,
+    
+    for j in f:
+        f[row] = j if j > 0  else 0  
+        row +=1
+    return f """
+    return f * (f > 0)
+
+def relu_diff(f):
+    """ row=0,
+    for j in f:
+        f[j] = 1 if j > 0  else 0  
+        row +=1
+    return f """
+    return 1. * (f >0)
+
+def grad_2 (output,deriv_2):
+    row=0,
+    col=0;
+    for i in f:
+        for j in i:
+            f[row][col] = 1 if j > 0  else 0
+            col = col+1   
+        row +=1
+
+def forward_prop(input,layer):
+    unactivated = np.dot(input,layer)
+    activated = relu(unactivated)
+    return activated
+
+
+learning_rate = 0.0001    
+nepoch = 5               
+batch_size = 100;
+training_size = 60000
+batch_number = training_size//batch_size
+input_layer_size = 64
+hidden_layer_size = 30
+output_layer_size = 10
+layer_1 = np.random.uniform(0, 1, (input_layer_size,hidden_layer_size))
+#layer_1.append(1)   #bias
+layer_2 = np.random.uniform(0, 1, (hidden_layer_size,output_layer_size))
+#layer_2.append(1)   #bias
+
+dL1 = np.zeros(layer_1.shape)
+dL2 = np.zeros(layer_2.shape)
+
+data_set = scipy.io.loadmat('MNIST_TrainSet_0to1_8x8pixel.mat')     #MNIST dataset in 8x8 resolution
+data_set = data_set['number']
+label_set = scipy.io.loadmat('MNIST_TrainSet_Label.mat')
+label = label_set['label']
+identity_matrix = np.identity(output_layer_size, dtype = float)
+
+inst =1
+input_data = data_set[:,inst]
+label_value = label[0][inst]
+expected_output = identity_matrix[label_value,:]
+
+##Forward prop and Bp
+output_1 =  np.dot(np.transpose(input_data),layer_1)
+output_1_activated = relu(output_1)
+output_2 =  np.dot(np.transpose(output_1_activated),layer_2)
+output_2_activated = relu(output_2)
+
+deriv_2 = relu_diff(output_2)
+deriv_1 = relu_diff(output_1)
+
+dedf = np.subtract(output_2_activated,expected_output )
+del_2 = np.round(dedf * deriv_2,3)
+print(del_2)
+del_2_t  = np.array(np.transpose(del_2))
+print(del_2_t)
+grad_2 = np.asarray(np.dot(np.transpose(np.asmatrix(output_1_activated)),np.asmatrix(del_2)))
+                    
+temp = np.dot(del_2, np.transpose(layer_2))
+del_1 = np.round(temp * deriv_1,3)
+grad_1 = np.asarray(np.dot(np.transpose(np.asmatrix(input_data)),np.asmatrix(del_1)))
+print(grad_1)
+print(grad_2)
+
